@@ -1,0 +1,97 @@
+import api from './api';
+import mockProductService from './mockProductService';
+
+// Set this to true to use mock data, false to use real API
+const USE_MOCK_DATA = true;
+
+export const productService = {
+    // Get all products
+    getAllProducts: async (page = 1, pageSize = 20) => {
+        if (USE_MOCK_DATA) {
+            return await mockProductService.getAllProducts(page, pageSize);
+        }
+        
+        try {
+            return await api.get(`/Product?page=${page}&pageSize=${pageSize}`);
+        } catch (error) {
+            console.error('Error fetching products:', error);
+            return { items: [], totalCount: 0 };
+        }
+    },
+
+    // Get product by ID
+    getProductById: async (id) => {
+        if (USE_MOCK_DATA) {
+            return await mockProductService.getProductById(id);
+        }
+        
+        try {
+            return await api.get(`/Product/${id}`);
+        } catch (error) {
+            console.error('Error fetching product:', error);
+            throw error;
+        }
+    },
+
+    // Get products by category
+    getProductsByCategory: async (categoryId, page = 1, pageSize = 20) => {
+        if (USE_MOCK_DATA) {
+            return await mockProductService.getProductsByCategory(categoryId, page, pageSize);
+        }
+        
+        try {
+            return await api.get(`/Product/category/${categoryId}?page=${page}&pageSize=${pageSize}`);
+        } catch (error) {
+            console.error('Error fetching products by category:', error);
+            return { items: [], totalCount: 0 };
+        }
+    },
+
+    // Get products by supplier
+    getProductsBySupplier: async (supplierId, page = 1, pageSize = 20) => {
+        if (USE_MOCK_DATA) {
+            return await mockProductService.getProductsBySupplier(supplierId, page, pageSize);
+        }
+        
+        try {
+            return await api.get(`/Product/supplier/${supplierId}?page=${page}&pageSize=${pageSize}`);
+        } catch (error) {
+            console.error('Error fetching products by supplier:', error);
+            return { items: [], totalCount: 0 };
+        }
+    },
+
+    // Search products
+    searchProducts: async (query, page = 1, pageSize = 20) => {
+        if (USE_MOCK_DATA) {
+            return await mockProductService.searchProducts(query, page, pageSize);
+        }
+        
+        try {
+            return await api.post('/Product/search', {
+                searchTerm: query,
+                page,
+                pageSize
+            });
+        } catch (error) {
+            console.error('Error searching products:', error);
+            return { items: [], totalCount: 0 };
+        }
+    },
+
+    // Get product variants
+    getProductVariants: async (productId) => {
+        if (USE_MOCK_DATA) {
+            return await mockProductService.getProductVariants(productId);
+        }
+        
+        try {
+            return await api.get(`/Product/${productId}/variants`);
+        } catch (error) {
+            console.error('Error fetching product variants:', error);
+            return [];
+        }
+    },
+};
+
+export default productService;
