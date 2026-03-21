@@ -13,6 +13,8 @@ import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import SearchPage from './pages/SearchPage';
+import CompaniesPage from './pages/CompaniesPage';
+import CompanyDetailPage from './pages/CompanyDetailPage';
 import './index.css';
 
 function App() {
@@ -32,6 +34,8 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/companies" element={<CompaniesPage />} />
+          <Route path="/company/:id" element={<CompanyDetailPage />} />
         </Routes>
       </main>
       <Footer />

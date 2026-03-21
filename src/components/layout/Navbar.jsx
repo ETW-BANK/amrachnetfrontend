@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import CartSidebar from '../cart/CartSidebar';
 import cartService from '../../services/cartService';
+import GlobalSearch from '../common/GlobalSearch';
 
 const Navbar = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [cartOpen, setCartOpen] = useState(false);
     const [cartCount, setCartCount] = useState(0);
-    const [searchTerm, setSearchTerm] = useState('');
     const location = useLocation();
-    const navigate = useNavigate();
 
-    // Load cart count on mount
     const loadCartCount = async () => {
         try {
             const cart = await cartService.getCart();
@@ -27,7 +25,6 @@ const Navbar = () => {
         loadCartCount();
     }, []);
 
-    // Handle scroll effect
     useEffect(() => {
         const handleScroll = () => {
             setScrolled(window.scrollY > 50);
@@ -36,20 +33,11 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // Handle search submit
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (searchTerm.trim()) {
-            navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
-            setSearchTerm('');
-            setMobileMenuOpen(false);
-        }
-    };
-
     const navItems = [
         { id: "home", label: "HOME", icon: "fas fa-home", path: "/" },
         { id: "categories", label: "CATALOG", icon: "fas fa-tags", path: "/categories" },
         { id: "products", label: "PRODUCTS", icon: "fas fa-box", path: "/products" },
+        { id: "companies", label: "SUPPLIERS", icon: "fas fa-building", path: "/companies" },
         { id: "about", label: "ABOUT", icon: "fas fa-info-circle", path: "/about" },
         { id: "contact", label: "CONTACT", icon: "fas fa-envelope", path: "/contact" }
     ];
@@ -98,18 +86,10 @@ const Navbar = () => {
                             </p>
                         </Link>
 
-                        {/* Search Bar - Desktop */}
-                        <form onSubmit={handleSearch} className="navbar-search">
-                            <input
-                                type="text"
-                                placeholder="Search products..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            <button type="submit">
-                                <i className="fas fa-search"></i>
-                            </button>
-                        </form>
+                        {/* Global Search - Desktop */}
+                        <div className="desktop-search">
+                            <GlobalSearch />
+                        </div>
 
                         {/* Hamburger Menu Button */}
                         <div
@@ -141,22 +121,12 @@ const Navbar = () => {
                             ))}
                             
                             {/* Mobile Search */}
-                            <li className="mobile-search">
-                                <form onSubmit={handleSearch} className="mobile-search-form">
-                                    <input
-                                        type="text"
-                                        placeholder="Search products..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                    <button type="submit">
-                                        <i className="fas fa-search"></i>
-                                    </button>
-                                </form>
+                            <li className="mobile-search-item">
+                                <GlobalSearch />
                             </li>
                             
                             {/* Cart Link for Mobile */}
-                            <li className="mobile-cart">
+                            <li className="mobile-cart-item">
                                 <button 
                                     className="cart-button-mobile"
                                     onClick={() => {
@@ -187,41 +157,77 @@ const Navbar = () => {
                 </div>
                 
                 <style>{`
-                    /* Desktop Navbar Search */
-                    .navbar-search {
-                        display: flex;
-                        align-items: center;
-                        background: #f1f5f9;
-                        border-radius: 0.5rem;
-                        overflow: hidden;
+                    /* Desktop Global Search */
+                    .desktop-search {
                         flex: 1;
-                        max-width: 400px;
+                        max-width: 500px;
                         margin: 0 1rem;
                     }
                     
-                    .navbar-search input {
-                        flex: 1;
-                        padding: 0.6rem 1rem;
-                        border: none;
-                        background: none;
-                        font-size: 0.9rem;
-                        outline: none;
+                    /* Mobile Search */
+                    .mobile-search-item {
+                        display: none;
+                        padding: 1rem;
                     }
                     
-                    .navbar-search button {
-                        padding: 0.6rem 1rem;
+                    .mobile-cart-item {
+                        display: none;
+                    }
+                    
+                    /* Desktop Cart Button */
+                    .cart-button {
                         background: none;
                         border: none;
+                        font-size: 1.25rem;
                         cursor: pointer;
-                        color: #64748b;
+                        position: relative;
+                        color: #475569;
+                        padding: 0.5rem;
                         transition: color 0.3s ease;
                     }
                     
-                    .navbar-search button:hover {
+                    .cart-button:hover {
                         color: #2563eb;
                     }
                     
-                    /* Desktop Navigation Links */
+                    .cart-badge {
+                        position: absolute;
+                        top: -8px;
+                        right: -12px;
+                        background: #2563eb;
+                        color: white;
+                        font-size: 0.7rem;
+                        padding: 0.125rem 0.375rem;
+                        border-radius: 50%;
+                        min-width: 18px;
+                        text-align: center;
+                    }
+                    
+                    .cart-button-mobile {
+                        width: 100%;
+                        text-align: left;
+                        padding: 1rem 2rem;
+                        background: none;
+                        border: none;
+                        font-size: 1rem;
+                        font-weight: 600;
+                        color: #475569;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                    }
+                    
+                    .cart-badge-mobile {
+                        background: #2563eb;
+                        color: white;
+                        font-size: 0.7rem;
+                        padding: 0.125rem 0.5rem;
+                        border-radius: 50%;
+                        margin-left: 0.5rem;
+                    }
+                    
+                    /* Navigation Links */
                     .nav-links {
                         display: flex;
                         gap: 2rem;
@@ -246,44 +252,9 @@ const Navbar = () => {
                         color: #2563eb;
                     }
                     
-                    .mobile-search,
-                    .mobile-cart {
-                        display: none;
-                    }
-                    
-                    /* Desktop Cart Button */
-                    .cart-button {
-                        background: none;
-                        border: none;
-                        font-size: 1.25rem;
-                        cursor: pointer;
-                        position: relative;
-                        color: #475569;
-                        padding: 0.5rem;
-                        transition: color 0.3s ease;
-                        margin-left: 0.5rem;
-                    }
-                    
-                    .cart-button:hover {
-                        color: #2563eb;
-                    }
-                    
-                    .cart-badge {
-                        position: absolute;
-                        top: -8px;
-                        right: -12px;
-                        background: #2563eb;
-                        color: white;
-                        font-size: 0.7rem;
-                        padding: 0.125rem 0.375rem;
-                        border-radius: 50%;
-                        min-width: 18px;
-                        text-align: center;
-                    }
-                    
                     /* Mobile Responsive */
                     @media (max-width: 768px) {
-                        .navbar-search {
+                        .desktop-search {
                             display: none;
                         }
                         
@@ -323,78 +294,13 @@ const Navbar = () => {
                             display: block;
                         }
                         
-                        .mobile-search {
+                        .mobile-search-item {
                             display: block !important;
-                            padding: 0.5rem 2rem;
                         }
                         
-                        .mobile-search-form {
-                            display: flex;
-                            background: #f1f5f9;
-                            border-radius: 0.5rem;
-                            overflow: hidden;
-                        }
-                        
-                        .mobile-search-form input {
-                            flex: 1;
-                            padding: 0.75rem;
-                            border: none;
-                            background: none;
-                            font-size: 0.9rem;
-                            outline: none;
-                        }
-                        
-                        .mobile-search-form button {
-                            padding: 0.75rem 1rem;
-                            background: none;
-                            border: none;
-                            cursor: pointer;
-                            color: #2563eb;
-                        }
-                        
-                        .mobile-cart {
+                        .mobile-cart-item {
                             display: block !important;
                             margin-top: 0.5rem;
-                        }
-                        
-                        .cart-button-mobile {
-                            width: 100%;
-                            text-align: left;
-                            padding: 1rem 2rem;
-                            background: none;
-                            border: none;
-                            font-size: 1rem;
-                            font-weight: 600;
-                            color: #475569;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            gap: 0.5rem;
-                            position: relative;
-                        }
-                        
-                        .cart-button-mobile i {
-                            font-size: 1.1rem;
-                        }
-                        
-                        .cart-badge-mobile {
-                            background: #2563eb;
-                            color: white;
-                            font-size: 0.7rem;
-                            padding: 0.125rem 0.5rem;
-                            border-radius: 50%;
-                            margin-left: 0.5rem;
-                        }
-                    }
-                    
-                    /* Tablet Styles */
-                    @media (min-width: 769px) and (max-width: 1024px) {
-                        .nav-links {
-                            gap: 1rem;
-                        }
-                        
-                        .navbar-search {
-                            max-width: 250px;
                         }
                     }
                 `}</style>
