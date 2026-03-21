@@ -221,40 +221,48 @@ export const mockProductService = {
     },
 
     // Get products by category
-    getProductsByCategory: async (categoryId, page = 1, pageSize = 20) => {
-        const filtered = mockProducts.filter(p => p.categoryId === parseInt(categoryId));
-        const start = (page - 1) * pageSize;
-        const end = start + pageSize;
-        const paginatedProducts = filtered.slice(start, end);
-        
-        return {
-            items: paginatedProducts,
-            totalCount: filtered.length,
-            page: page,
-            pageSize: pageSize,
-            totalPages: Math.ceil(filtered.length / pageSize)
-        };
-    },
-
-    // Search products
-    searchProducts: async (query, page = 1, pageSize = 20) => {
-        const filtered = mockProducts.filter(p => 
-            p.name.toLowerCase().includes(query.toLowerCase()) ||
-            p.description.toLowerCase().includes(query.toLowerCase()) ||
-            (p.supplier?.companyName && p.supplier.companyName.toLowerCase().includes(query.toLowerCase()))
-        );
-        const start = (page - 1) * pageSize;
-        const end = start + pageSize;
-        const paginatedProducts = filtered.slice(start, end);
-        
-        return {
-            items: paginatedProducts,
-            totalCount: filtered.length,
-            page: page,
-            pageSize: pageSize,
-            totalPages: Math.ceil(filtered.length / pageSize)
-        };
-    },
+ // Get products by category
+getProductsByCategory: async (categoryId, page = 1, pageSize = 20) => {
+    console.log('Filtering products by category ID:', categoryId);
+    
+    // Filter by category ID
+    const filtered = mockProducts.filter(p => p.categoryId === parseInt(categoryId));
+    
+    console.log(`Found ${filtered.length} products in category ${categoryId}`);
+    
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const paginatedProducts = filtered.slice(start, end);
+    
+    return {
+        items: paginatedProducts,
+        totalCount: filtered.length,
+        page: page,
+        pageSize: pageSize,
+        totalPages: Math.ceil(filtered.length / pageSize)
+    };
+},
+//search products by name, description, or supplier company name    
+searchProducts: async (query, page = 1, pageSize = 20) => {
+    console.log('🔍 Searching mock products for:', query); // Add this line
+    
+    const filtered = mockProducts.filter(p => 
+        p.name.toLowerCase().includes(query.toLowerCase()) ||
+        p.description.toLowerCase().includes(query.toLowerCase()) ||
+        (p.supplier?.companyName && p.supplier.companyName.toLowerCase().includes(query.toLowerCase()))
+    );
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const paginatedProducts = filtered.slice(start, end);
+    
+    return {
+        items: paginatedProducts,
+        totalCount: filtered.length,
+        page: page,
+        pageSize: pageSize,
+        totalPages: Math.ceil(filtered.length / pageSize)
+    };
+},
 
     // Get products by supplier
     getProductsBySupplier: async (supplierId, page = 1, pageSize = 20) => {

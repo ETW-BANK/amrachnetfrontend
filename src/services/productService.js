@@ -62,23 +62,30 @@ export const productService = {
     },
 
     // Search products
-    searchProducts: async (query, page = 1, pageSize = 20) => {
-        if (USE_MOCK_DATA) {
-            return await mockProductService.searchProducts(query, page, pageSize);
-        }
-        
-        try {
-            return await api.post('/Product/search', {
-                searchTerm: query,
-                page,
-                pageSize
-            });
-        } catch (error) {
-            console.error('Error searching products:', error);
-            return { items: [], totalCount: 0 };
-        }
-    },
 
+// Search products - FIXED to use mock data when flag is true
+searchProducts: async (searchQuery) => {
+    // First check if we should use mock data
+    if (USE_MOCK_DATA) {
+        // Handle both string and object queries for mock
+        const query = typeof searchQuery === 'string' ? searchQuery : searchQuery.searchTerm || '';
+        const page = searchQuery.page || 1;
+        const pageSize = searchQuery.pageSize || 20;
+        return await mockProductService.searchProducts(query, page, pageSize);
+    }
+    
+    // Otherwise use real API
+    try {
+        const response = await api.post('/Product/search', searchQuery);
+        if (!response.items || response.items.length === 0) {
+            console.log('No products found in database');
+        }
+        return response;
+    } catch (error) {
+        console.error('Error searching products:', error);
+        return { items: [], totalCount: 0, message: 'No products available yet' };
+    }
+},
     // Get product variants
     getProductVariants: async (productId) => {
         if (USE_MOCK_DATA) {

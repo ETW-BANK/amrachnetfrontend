@@ -9,26 +9,34 @@ import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import SearchPage from './pages/SearchPage';
 import './index.css';
 
 function App() {
-    return (
-        <Router>
-            <Navbar />
-            <main className="container" style={{ flex: 1, padding: '2rem 0' }}>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/categories" element={<CategoriesPage />} />
-                    <Route path="/category/:id" element={<CategoryDetailPage />} />
-                    <Route path="/products" element={<ProductsPage />} />
-                    <Route path="/product/:id" element={<ProductDetailPage />} />
-                    <Route path="/about" element={<AboutPage />} />
-                    <Route path="/contact" element={<ContactPage />} />
-                </Routes>
-            </main>
-            <Footer />
-        </Router>
-    );
+  return (
+    <Router>
+      <Navbar />
+      <main className="container" style={{ flex: 1, padding: '2rem 0' }}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/category/:id" element={<CategoryDetailPage />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/product/:id" element={<ProductDetailPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+          <Route path="/search" element={<SearchPage />} />
+        </Routes>
+      </main>
+      <Footer />
+    </Router>
+  );
 }
 
 export default App;
