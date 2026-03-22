@@ -100,9 +100,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .page-header .section-subtitle {
-    text-align: center;
-    margin-left: auto;
-    margin-right: auto;
+    text-align: center;           /* Centers the subtitle text */
+    margin-left: auto;            /* Centers the block */
+    margin-right: auto;           /* Centers the block */
+    max-width: 700px;             /* Keeps it readable on wide screens */
 }
 
 /* ============================================
