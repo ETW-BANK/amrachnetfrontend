@@ -1,118 +1,107 @@
-import api from './api';
+// Local storage based cart service (no API calls)
+const CART_KEY = 'amrach_cart';
 
-// For now, we'll use localStorage to store cart ID
-const getCartId = () => {
-    let cartId = localStorage.getItem('cartId');
-    if (!cartId) {
-        cartId = `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        localStorage.setItem('cartId', cartId);
-    }
-    return cartId;
+const getLocalCart = () => {
+    const cart = localStorage.getItem(CART_KEY);
+    return cart ? JSON.parse(cart) : { items: [], subtotal: 0, total: 0, discount: 0 };
+};
+
+const saveLocalCart = (cart) => {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+};
+
+const calculateTotals = (items) => {
+    const subtotal = items.reduce((sum, item) => sum + ((item.unitPrice || 0) * item.quantity), 0);
+    return {
+        subtotal,
+        total: subtotal - (items[0]?.discount || 0),
+        discount: items[0]?.discount || 0
+    };
 };
 
 export const cartService = {
-    // Get cart details
+    // Get cart
     getCart: async () => {
-        const cartId = getCartId();
-        try {
-            // Try to fetch from API
-            const response = await api.get(`/Cart/${cartId}`);
-            return response;
-        } catch (error) {
-            // If cart doesn't exist, return empty cart structure
-            console.log('Creating new cart...');
-            return { 
-                id: cartId, 
-                items: [], 
-                subtotal: 0, 
-                total: 0,
-                discount: 0 
-            };
-        }
+        const cart = getLocalCart();
+        const totals = calculateTotals(cart.items);
+        return {
+            ...cart,
+            ...totals,
+            id: 'local_cart'
+        };
     },
 
-    // Add item to cart
-    addToCart: async (productVariantId, quantity = 1) => {
-        const cartId = getCartId();
-        try {
-            return await api.post('/Cart/add', {
-                cartId,
+    // Add to cart
+    addToCart: async (productVariantId, quantity = 1, productDetails = {}) => {
+        const cart = getLocalCart();
+        const existingItem = cart.items.find(item => item.productVariantId === productVariantId);
+        
+        if (existingItem) {
+            existingItem.quantity += quantity;
+        } else {
+            cart.items.push({
+                id: Date.now(),
                 productVariantId,
-                quantity
+                productName: productDetails.name || 'Product',
+                unitPrice: productDetails.price || 0,
+                quantity: quantity,
+                productImage: productDetails.image || null,
+                sku: productDetails.sku || null
             });
-        } catch (error) {
-            console.error('Error adding to cart:', error);
-            throw error;
         }
+        
+        saveLocalCart(cart);
+        return { success: true };
     },
 
-    // Update cart item quantity
+    // Update cart item
     updateCartItem: async (cartItemId, quantity) => {
-        try {
-            return await api.put(`/Cart/item/${cartItemId}`, { quantity });
-        } catch (error) {
-            console.error('Error updating cart item:', error);
-            throw error;
+        const cart = getLocalCart();
+        const item = cart.items.find(item => item.id === cartItemId);
+        if (item) {
+            item.quantity = quantity;
+            saveLocalCart(cart);
         }
+        return { success: true };
     },
 
-    // Remove item from cart
+    // Remove cart item
     removeCartItem: async (cartItemId) => {
-        try {
-            return await api.delete(`/Cart/item/${cartItemId}`);
-        } catch (error) {
-            console.error('Error removing cart item:', error);
-            throw error;
-        }
+        const cart = getLocalCart();
+        cart.items = cart.items.filter(item => item.id !== cartItemId);
+        saveLocalCart(cart);
+        return { success: true };
     },
 
     // Apply coupon
     applyCoupon: async (couponCode) => {
-        const cartId = getCartId();
-        try {
-            return await api.post(`/Cart/${cartId}/coupon/${couponCode}`);
-        } catch (error) {
-            console.error('Error applying coupon:', error);
-            throw error;
+        if (couponCode === 'SAVE10') {
+            const cart = getLocalCart();
+            const totals = calculateTotals(cart.items);
+            const discount = totals.subtotal * 0.1;
+            cart.discount = discount;
+            cart.total = totals.subtotal - discount;
+            saveLocalCart(cart);
+            return { success: true, discount };
         }
+        throw new Error('Invalid coupon');
     },
 
     // Remove coupon
     removeCoupon: async () => {
-        const cartId = getCartId();
-        try {
-            return await api.delete(`/Cart/${cartId}/coupon`);
-        } catch (error) {
-            console.error('Error removing coupon:', error);
-            throw error;
-        }
-    },
-
-    // Get cart summary
-    getCartSummary: async () => {
-        const cartId = getCartId();
-        try {
-            return await api.get(`/Cart/${cartId}/summary`);
-        } catch (error) {
-            console.error('Error getting cart summary:', error);
-            throw error;
-        }
+        const cart = getLocalCart();
+        cart.discount = 0;
+        const totals = calculateTotals(cart.items);
+        cart.total = totals.subtotal;
+        saveLocalCart(cart);
+        return { success: true };
     },
 
     // Clear cart
     clearCart: async () => {
-        const cartId = getCartId();
-        try {
-            const cart = await cartService.getCart();
-            if (cart.items && cart.items.length > 0) {
-                for (const item of cart.items) {
-                    await cartService.removeCartItem(item.id);
-                }
-            }
-        } catch (error) {
-            console.error('Error clearing cart:', error);
-        }
-    },
+        localStorage.removeItem(CART_KEY);
+        return { success: true };
+    }
 };
 
 export default cartService;

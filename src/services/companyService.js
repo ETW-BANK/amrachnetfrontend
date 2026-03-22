@@ -4,10 +4,8 @@ export const companyService = {
     // Get all companies
     getAllCompanies: async () => {
         try {
-            const response = await fetch('https://amrachapi2026.runasp.net/api/Companies');
-            const data = await response.json();
-            console.log('Companies from API:', data);
-            return Array.isArray(data) ? data : [];
+            const response = await api.get('/Companies');
+            return Array.isArray(response) ? response : [];
         } catch (error) {
             console.error('Error fetching companies:', error);
             return [];
@@ -17,10 +15,42 @@ export const companyService = {
     // Get company by ID
     getCompanyById: async (id) => {
         try {
-            const response = await fetch(`https://amrachapi2026.runasp.net/api/Companies/${id}`);
-            return await response.json();
+            return await api.get(`/Companies/${id}`);
         } catch (error) {
             console.error('Error fetching company:', error);
+            throw error;
+        }
+    },
+
+    // Create a new company - EXACT MATCH to API DTO
+    createCompany: async (companyData) => {
+        try {
+            // Build the exact CreateCompanyDto structure
+            const requestBody = {
+                name: companyData.name,
+                description: companyData.description || '',
+                businessType: companyData.businessType || 'General Trading',
+                tin: companyData.tin,                    // Required
+                businessLicenseNumber: companyData.businessLicenseNumber, // Required
+                yearsInBusiness: parseInt(companyData.yearsInBusiness) || 1,
+                website: companyData.website || '',
+                establishedDate: companyData.establishedDate || new Date().toISOString()
+            };
+            
+            // Add locations if provided
+            if (companyData.city) {
+                requestBody.locations = [{
+                    city: companyData.city,
+                    address: companyData.address || ''
+                }];
+            }
+            
+            console.log('Creating company with data:', requestBody);
+            
+            const response = await api.post('/Companies', requestBody);
+            return response;
+        } catch (error) {
+            console.error('Error creating company:', error);
             throw error;
         }
     },
@@ -28,8 +58,7 @@ export const companyService = {
     // Get company by TIN
     getCompanyByTIN: async (tin) => {
         try {
-            const response = await fetch(`https://amrachapi2026.runasp.net/api/Companies/tin/${tin}`);
-            return await response.json();
+            return await api.get(`/Companies/tin/${tin}`);
         } catch (error) {
             console.error('Error fetching company by TIN:', error);
             return null;
@@ -39,39 +68,23 @@ export const companyService = {
     // Get verified companies
     getVerifiedCompanies: async () => {
         try {
-            const response = await fetch('https://amrachapi2026.runasp.net/api/Companies/verified');
-            const data = await response.json();
-            return Array.isArray(data) ? data : [];
+            const response = await api.get('/Companies/verified');
+            return Array.isArray(response) ? response : [];
         } catch (error) {
             console.error('Error fetching verified companies:', error);
             return [];
         }
     },
 
-    // Search suppliers - Get all and filter locally
+    // Search suppliers
     searchSuppliers: async (query) => {
-        if (!query || query.trim().length === 0) {
-            return [];
-        }
-        
-        const searchTerm = query.toLowerCase().trim();
-        
         try {
-            // Get all companies
-            const allCompanies = await companyService.getAllCompanies();
-            console.log('All companies for filtering:', allCompanies);
-            
-            // Filter locally
-            const filtered = allCompanies.filter(company => 
-                company.name?.toLowerCase().includes(searchTerm) ||
-                company.description?.toLowerCase().includes(searchTerm) ||
-                company.tin?.toLowerCase().includes(searchTerm) ||
-                company.businessType?.toLowerCase().includes(searchTerm)
-            );
-            
-            console.log(`Found ${filtered.length} companies matching "${searchTerm}"`);
-            return filtered;
-            
+            const response = await api.post('/Companies/search', {
+                keyword: query,
+                page: 1,
+                pageSize: 20
+            });
+            return response.items || [];
         } catch (error) {
             console.error('Error searching suppliers:', error);
             return [];
