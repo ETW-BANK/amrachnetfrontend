@@ -15,6 +15,8 @@ import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import SearchPage from './pages/SearchPage';
 import CompaniesPage from './pages/CompaniesPage';
 import CompanyDetailPage from './pages/CompanyDetailPage';
+import RFQPage from './pages/RFQPage';
+import FAQPage from './pages/FAQPage';
 import './index.css';
 
 function App() {
@@ -36,6 +38,8 @@ function App() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/companies" element={<CompaniesPage />} />
           <Route path="/company/:id" element={<CompanyDetailPage />} />
+          <Route path="/rfq" element={<RFQPage />} />
+          <Route path="/faq" element={<FAQPage />} />
         </Routes>
       </main>
       <Footer />

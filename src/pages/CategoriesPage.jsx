@@ -35,7 +35,7 @@ const CategoriesPage = () => {
         }
 
         const searchLower = searchTerm.toLowerCase();
-        const filtered = getRootCategories().filter(cat => 
+        const filtered = getRootCategories().filter(cat =>
             cat.name.toLowerCase().includes(searchLower) ||
             cat.description?.toLowerCase().includes(searchLower)
         );
@@ -56,9 +56,7 @@ const CategoriesPage = () => {
         <div className="categories-page">
             <div className="page-header">
                 <h1 className="section-title">Browse Categories</h1>
-                <p className="section-subtitle">
-                    Discover products across our extensive B2B marketplace catalog
-                </p>
+                <p className="section-subtitle">Discover products across our extensive B2B marketplace catalog</p>
             </div>
 
             {/* Search and View Controls */}
@@ -78,13 +76,13 @@ const CategoriesPage = () => {
                     )}
                 </div>
                 <div className="view-toggle">
-                    <button 
+                    <button
                         className={`toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
                         onClick={() => setViewMode('grid')}
                     >
                         <i className="fas fa-th"></i> Grid
                     </button>
-                    <button 
+                    <button
                         className={`toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
                         onClick={() => setViewMode('tree')}
                     >
@@ -97,8 +95,8 @@ const CategoriesPage = () => {
             {viewMode === 'grid' ? (
                 <div className="categories-grid">
                     {rootCategories.map(category => (
-                        <CategoryCard 
-                            key={category.id} 
+                        <CategoryCard
+                            key={category.id}
                             category={category}
                             subcategories={getSubCategories(category.id)}
                         />

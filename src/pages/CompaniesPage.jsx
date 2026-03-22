@@ -41,14 +41,14 @@ const CompaniesPage = () => {
 
     const filterCompanies = () => {
         let filtered = [...companies];
-        
+
         if (searchTerm) {
             filtered = filtered.filter(company =>
                 company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (company.description && company.description.toLowerCase().includes(searchTerm.toLowerCase()))
             );
         }
-        
+
         setFilteredCompanies(filtered);
     };
 
@@ -83,9 +83,7 @@ const CompaniesPage = () => {
         <div className="companies-page">
             <div className="page-header">
                 <h1 className="section-title">Suppliers Directory</h1>
-                <p className="section-subtitle">
-                    Connect with verified B2B suppliers and manufacturers
-                </p>
+                <p className="section-subtitle">Connect with verified B2B suppliers and manufacturers worldwide</p>
             </div>
 
             {/* Search and Filter Bar */}

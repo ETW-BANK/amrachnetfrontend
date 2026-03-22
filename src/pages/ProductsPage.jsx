@@ -40,7 +40,7 @@ const ProductsPage = () => {
         try {
             setLoading(true);
             let data;
-            
+
             if (searchTerm) {
                 data = await productService.searchProducts(searchTerm, currentPage);
             } else if (selectedCategory) {
@@ -48,7 +48,7 @@ const ProductsPage = () => {
             } else {
                 data = await productService.getAllProducts(currentPage);
             }
-            
+
             // Handle both array and object responses
             const productsList = data.items || data || [];
             setProducts(productsList);
@@ -89,7 +89,7 @@ const ProductsPage = () => {
                 <h1 className="section-title">Products</h1>
                 <p className="section-subtitle">Browse our extensive catalog of quality products</p>
             </div>
-            
+
             {/* Search and Filter Bar */}
             <div className="filter-bar">
                 <form onSubmit={handleSearch} className="search-form">
@@ -104,8 +104,8 @@ const ProductsPage = () => {
                         <i className="fas fa-search"></i> Search
                     </button>
                 </form>
-                
-                <select 
+
+                <select
                     className="category-filter"
                     value={selectedCategory}
                     onChange={(e) => handleCategoryChange(e.target.value)}
@@ -116,18 +116,18 @@ const ProductsPage = () => {
                     ))}
                 </select>
             </div>
-            
+
             {/* Products Grid */}
-            <ProductGrid 
-                products={products} 
-                loading={loading} 
+            <ProductGrid
+                products={products}
+                loading={loading}
                 onAddToCart={handleAddToCart}
             />
-            
+
             {/* Pagination */}
             {totalPages > 1 && (
                 <div className="pagination">
-                    <button 
+                    <button
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
                         className="page-btn"
@@ -135,7 +135,7 @@ const ProductsPage = () => {
                         <i className="fas fa-chevron-left"></i>
                     </button>
                     <span className="page-info">Page {currentPage} of {totalPages}</span>
-                    <button 
+                    <button
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
                         className="page-btn"

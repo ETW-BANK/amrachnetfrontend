@@ -39,7 +39,9 @@ const Navbar = () => {
         { id: "products", label: "PRODUCTS", icon: "fas fa-box", path: "/products" },
         { id: "companies", label: "SUPPLIERS", icon: "fas fa-building", path: "/companies" },
         { id: "about", label: "ABOUT", icon: "fas fa-info-circle", path: "/about" },
-        { id: "contact", label: "CONTACT", icon: "fas fa-envelope", path: "/contact" }
+        { id: "contact", label: "CONTACT", icon: "fas fa-envelope", path: "/contact" },
+        { id: "rfq", label: "RFQ", icon: "fas fa-file-alt", path: "/rfq" },
+        { id: "faq", label: "FAQ", icon: "fas fa-question-circle", path: "/faq" },
     ];
 
     const isActive = (path) => location.pathname === path;

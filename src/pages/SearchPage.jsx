@@ -51,18 +51,18 @@ const SearchPage = () => {
     const performSearch = async () => {
         setLoading(true);
         setError(null);
-        
+
         try {
             let results;
-            
+
             if (filters.categoryId) {
                 console.log('Searching by category ID:', filters.categoryId);
                 results = await productService.getProductsByCategory(
-                    filters.categoryId, 
-                    filters.page, 
+                    filters.categoryId,
+                    filters.page,
                     filters.pageSize
                 );
-            } 
+            }
             else if (filters.searchTerm) {
                 console.log('Searching by term:', filters.searchTerm);
                 const searchQuery = {
@@ -79,9 +79,9 @@ const SearchPage = () => {
                 console.log('Getting all products');
                 results = await productService.getAllProducts(filters.page, filters.pageSize);
             }
-            
+
             let filteredItems = results.items || [];
-            
+
             if (filters.minPrice) {
                 filteredItems = filteredItems.filter(item => {
                     const price = item.price || item.variants?.[0]?.price || 0;
@@ -94,7 +94,7 @@ const SearchPage = () => {
                     return price <= parseFloat(filters.maxPrice);
                 });
             }
-            
+
             if (filters.sortBy === 'price_asc') {
                 filteredItems.sort((a, b) => {
                     const priceA = a.price || a.variants?.[0]?.price || 0;
@@ -112,12 +112,12 @@ const SearchPage = () => {
             } else if (filters.sortBy === 'name_desc') {
                 filteredItems.sort((a, b) => b.name.localeCompare(a.name));
             }
-            
+
             console.log(`Found ${filteredItems.length} products`);
             setProducts(filteredItems);
             setTotalResults(filteredItems.length);
             setTotalPages(Math.ceil(filteredItems.length / filters.pageSize));
-            
+
         } catch (error) {
             console.error('Search error:', error);
             setError('Failed to search products. Please try again.');
@@ -129,7 +129,7 @@ const SearchPage = () => {
 
     const handleFilterChange = (key, value) => {
         setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
-        
+
         const newParams = new URLSearchParams();
         if (key === 'searchTerm' && value) newParams.set('q', value);
         if (key === 'categoryId' && value) newParams.set('category', value);
@@ -140,12 +140,12 @@ const SearchPage = () => {
 
     const handleCategoryChange = (categoryId) => {
         console.log('Category changed to:', categoryId);
-        setFilters(prev => ({ 
-            ...prev, 
+        setFilters(prev => ({
+            ...prev,
             categoryId: categoryId,
             page: 1
         }));
-        
+
         const newParams = new URLSearchParams();
         if (categoryId) newParams.set('category', categoryId);
         if (filters.searchTerm) newParams.set('q', filters.searchTerm);
@@ -177,9 +177,8 @@ const SearchPage = () => {
         <div className="search-page">
             <div className="page-header">
                 <h1 className="section-title">Search Products</h1>
-                <p className="section-subtitle">Find exactly what you're looking for</p>
+                <p className="section-subtitle">Find exactly what you're looking for across our marketplace</p>
             </div>
-
             <div className="search-bar-container">
                 <div className="search-input-wrapper">
                     <i className="fas fa-search"></i>
@@ -321,7 +320,7 @@ const SearchPage = () => {
                     ) : (
                         <>
                             <ProductGrid products={products} loading={false} />
-                            
+
                             {totalPages > 1 && (
                                 <div className="pagination">
                                     <button
