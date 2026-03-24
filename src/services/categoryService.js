@@ -73,7 +73,16 @@ export const categoryService = {
             return [];
         }
     },
-
+// Add this to your categoryService.js
+createCategory: async (categoryData) => {
+    try {
+        const response = await api.post('/Category', categoryData);
+        return response;
+    } catch (error) {
+        console.error('Error creating category:', error);
+        throw error;
+    }
+},
     // Get category path (breadcrumb)
     getCategoryPath: async (categoryId) => {
         try {
