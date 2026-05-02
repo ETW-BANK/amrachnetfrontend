@@ -4,8 +4,6 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
 import productService from '../services/productService';
 import categoryService from '../services/categoryService';
-// Import mock service for testing if needed
-import { mockProductService } from '../services/mockProductService';
 
 const ProductsPage = () => {
     const [products, setProducts] = useState([]);

@@ -73,11 +73,16 @@ async login(email, password) {
     } catch (error) {
         console.error('Login error:', error);
         let errorMessage = 'Login failed. Please try again.';
+        const normalizedMessage = String(error.message || '').toLowerCase();
         
-        if (error.message.includes('401')) {
+        if (normalizedMessage.includes('401')) {
             errorMessage = 'Invalid email or password';
-        } else if (error.message.includes('400')) {
+        } else if (normalizedMessage.includes('400')) {
             errorMessage = 'Please check your credentials';
+        } else if (normalizedMessage.includes('500') || normalizedMessage.includes('an error occurred during login')) {
+            errorMessage = 'The login service is failing on the server right now. This is a backend issue, not a password mismatch.';
+        } else if (error.message) {
+            errorMessage = error.message;
         }
         
         return { success: false, error: errorMessage };

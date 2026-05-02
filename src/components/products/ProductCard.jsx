@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import cartService from '../../services/cartService';
+import { getProductAvailableQuantity, isProductInStock } from '../../utils/productStock';
 
 const ProductCard = ({ product, onAddToCart }) => {
     const [adding, setAdding] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const availableQuantity = getProductAvailableQuantity(product);
+    const inStock = isProductInStock(product);
 
     const handleAddToCart = async (e) => {
         e.preventDefault();
@@ -82,7 +85,7 @@ const ProductCard = ({ product, onAddToCart }) => {
                                 <span className="original-price">{getOriginalPrice()}</span>
                             )}
                         </div>
-                        {product.stockQuantity > 0 ? (
+                        {inStock ? (
                             <span className="product-stock in-stock">
                                 <i className="fas fa-check-circle"></i> In Stock
                             </span>
@@ -102,7 +105,7 @@ const ProductCard = ({ product, onAddToCart }) => {
             </Link>
             
             <div className="product-actions">
-                {product.stockQuantity > 0 && (
+                {inStock && availableQuantity > 0 && (
                     <button 
                         className="btn-add-to-cart"
                         onClick={handleAddToCart}

@@ -83,6 +83,38 @@ createCategory: async (categoryData) => {
         throw error;
     }
 },
+    updateCategory: async (id, categoryData) => {
+        try {
+            return await api.put(`/Category/${id}`, categoryData);
+        } catch (error) {
+            console.error('Error updating category:', error);
+            throw error;
+        }
+    },
+    deleteCategory: async (id) => {
+        try {
+            return await api.delete(`/Category/${id}`);
+        } catch (error) {
+            console.error('Error deleting category:', error);
+            throw error;
+        }
+    },
+    getCategoryUsageStatus: async (id) => {
+        try {
+            const [hasProductsResponse, inUseResponse] = await Promise.all([
+                api.get(`/Category/${id}/has-products`).catch(() => ({ hasProducts: false })),
+                api.get(`/Category/${id}/in-use`).catch(() => ({ inUse: false }))
+            ]);
+
+            return {
+                hasProducts: Boolean(hasProductsResponse?.hasProducts),
+                inUse: Boolean(inUseResponse?.inUse)
+            };
+        } catch (error) {
+            console.error('Error checking category usage:', error);
+            return { hasProducts: false, inUse: false };
+        }
+    },
     // Get category path (breadcrumb)
     getCategoryPath: async (categoryId) => {
         try {

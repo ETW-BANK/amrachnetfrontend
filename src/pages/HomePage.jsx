@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import productService from '../services/productService';
+import { isProductInStock } from '../utils/productStock';
 
 const HomePage = () => {
     const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -92,9 +93,15 @@ const HomePage = () => {
                                             <div className="product-price">
                                                 ${product.price?.toFixed(2)}
                                             </div>
-                                            <span className="product-stock in-stock">
-                                                <i className="fas fa-check-circle"></i> In Stock
-                                            </span>
+                                            {isProductInStock(product) ? (
+                                                <span className="product-stock in-stock">
+                                                    <i className="fas fa-check-circle"></i> In Stock
+                                                </span>
+                                            ) : (
+                                                <span className="product-stock out-of-stock">
+                                                    <i className="fas fa-times-circle"></i> Out of Stock
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </Link>

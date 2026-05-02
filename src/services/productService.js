@@ -2,7 +2,31 @@ import api from './api';
 import mockProductService from './mockProductService';
 
 // Set this to true to use mock data, false to use real API
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
+
+const normalizeProductListResponse = (response, page = 1, pageSize = 20) => {
+    if (Array.isArray(response)) {
+        return {
+            items: response,
+            totalCount: response.length,
+            page,
+            pageSize,
+            totalPages: Math.ceil(response.length / pageSize)
+        };
+    }
+
+    if (Array.isArray(response?.items)) {
+        return response;
+    }
+
+    return {
+        items: [],
+        totalCount: 0,
+        page,
+        pageSize,
+        totalPages: 0
+    };
+};
 
 export const productService = {
     // Get all products
@@ -12,7 +36,8 @@ export const productService = {
         }
         
         try {
-            return await api.get(`/Product?page=${page}&pageSize=${pageSize}`);
+            const response = await api.get(`/Product?page=${page}&pageSize=${pageSize}`);
+            return normalizeProductListResponse(response, page, pageSize);
         } catch (error) {
             console.error('Error fetching products:', error);
             return { items: [], totalCount: 0 };
@@ -40,7 +65,8 @@ export const productService = {
         }
         
         try {
-            return await api.get(`/Product/category/${categoryId}?page=${page}&pageSize=${pageSize}`);
+            const response = await api.get(`/Product/category/${categoryId}?page=${page}&pageSize=${pageSize}`);
+            return normalizeProductListResponse(response, page, pageSize);
         } catch (error) {
             console.error('Error fetching products by category:', error);
             return { items: [], totalCount: 0 };
@@ -62,30 +88,37 @@ export const productService = {
     },
 
     // Search products
+    // Supports:
+    // - searchProducts('laptop', 1, 20)
+    // - searchProducts({ searchTerm: 'laptop', page: 1, pageSize: 20 })
+    searchProducts: async (searchTermOrBody, page = 1, pageSize = 20) => {
+        const body = typeof searchTermOrBody === 'object' && searchTermOrBody !== null
+            ? {
+                page: searchTermOrBody.page ?? page,
+                pageSize: searchTermOrBody.pageSize ?? pageSize,
+                ...searchTermOrBody,
+            }
+            : {
+                searchTerm: String(searchTermOrBody ?? ''),
+                page,
+                pageSize,
+            };
 
-// Search products - FIXED to use mock data when flag is true
-searchProducts: async (searchQuery) => {
-    // First check if we should use mock data
-    if (USE_MOCK_DATA) {
-        // Handle both string and object queries for mock
-        const query = typeof searchQuery === 'string' ? searchQuery : searchQuery.searchTerm || '';
-        const page = searchQuery.page || 1;
-        const pageSize = searchQuery.pageSize || 20;
-        return await mockProductService.searchProducts(query, page, pageSize);
-    }
-    
-    // Otherwise use real API
-    try {
-        const response = await api.post('/Product/search', searchQuery);
-        if (!response.items || response.items.length === 0) {
-            console.log('No products found in database');
+        if (USE_MOCK_DATA) {
+            const query = body.searchTerm || '';
+            const mockPage = body.page || 1;
+            const mockPageSize = body.pageSize || 20;
+            return await mockProductService.searchProducts(query, mockPage, mockPageSize);
         }
-        return response;
-    } catch (error) {
-        console.error('Error searching products:', error);
-        return { items: [], totalCount: 0, message: 'No products available yet' };
-    }
-},
+
+        try {
+            const response = await api.post('/Product/search', body);
+            return response;
+        } catch (error) {
+            console.error('Error searching products:', error);
+            return { items: [], totalCount: 0, message: 'No products available yet' };
+        }
+    },
     // Get product variants
     getProductVariants: async (productId) => {
         if (USE_MOCK_DATA) {
@@ -97,6 +130,19 @@ searchProducts: async (searchQuery) => {
         } catch (error) {
             console.error('Error fetching product variants:', error);
             return [];
+        }
+    },
+
+    toggleProductStatus: async (productId, isActive) => {
+        if (USE_MOCK_DATA) {
+            return true;
+        }
+
+        try {
+            return await api.patch(`/Product/${productId}/toggle-status`, isActive);
+        } catch (error) {
+            console.error('Error toggling product status:', error);
+            throw error;
         }
     },
 };

@@ -14,6 +14,18 @@ class ApiService {
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
         const token = this.getAuthToken();
+        const parseResponse = async (fetchResponse) => {
+            if (fetchResponse.status === 204) {
+                return null;
+            }
+
+            const contentType = fetchResponse.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                return null;
+            }
+
+            return await fetchResponse.json();
+        };
         
         const config = {
             headers: {
@@ -39,7 +51,7 @@ class ApiService {
                     if (!retryResponse.ok) {
                         throw new Error(`API Error: ${retryResponse.status}`);
                     }
-                    return await retryResponse.json();
+                    return await parseResponse(retryResponse);
                 } else {
                     // Redirect to login
                     window.location.href = '/login';
@@ -48,10 +60,12 @@ class ApiService {
             }
             
             if (!response.ok) {
-                throw new Error(`API Error: ${response.status}`);
+                const errorPayload = await parseResponse(response).catch(() => null);
+                const errorMessage = errorPayload?.detail || errorPayload?.title || errorPayload?.message || `API Error: ${response.status}`;
+                throw new Error(errorMessage);
             }
             
-            return await response.json();
+            return await parseResponse(response);
         } catch (error) {
             console.error('API Request Failed:', error);
             throw error;
@@ -100,6 +114,13 @@ class ApiService {
     put(endpoint, data) {
         return this.request(endpoint, {
             method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
+
+    patch(endpoint, data) {
+        return this.request(endpoint, {
+            method: 'PATCH',
             body: JSON.stringify(data),
         });
     }

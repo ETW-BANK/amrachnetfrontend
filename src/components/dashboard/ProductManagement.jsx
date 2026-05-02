@@ -3,6 +3,7 @@ import { useProductManagement } from '../../context/ProductManagementContext';
 import ProductFormModal from './ProductFormModal';
 import ProductCard from './ProductCard';
 import LoadingSpinner from '../common/LoadingSpinner';
+import { getProductAvailableQuantity } from '../../utils/productStock';
 
 const ProductManagement = () => {
     const { 
@@ -24,7 +25,8 @@ const ProductManagement = () => {
     const filteredProducts = products.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                              product.description?.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
+        const normalizedStatus = product.isActive === false ? 'inactive' : 'active';
+        const matchesStatus = statusFilter === 'all' || normalizedStatus === statusFilter;
         return matchesSearch && matchesStatus;
     });
 
@@ -35,9 +37,12 @@ const ProductManagement = () => {
 
     const stats = {
         total: products.length,
-        active: products.filter(p => p.status === 'active').length,
-        inactive: products.filter(p => p.status === 'inactive').length,
-        lowStock: products.filter(p => p.stockQuantity < 10).length
+        active: products.filter(p => p.isActive !== false).length,
+        inactive: products.filter(p => p.isActive === false).length,
+        lowStock: products.filter(p => {
+            const quantity = getProductAvailableQuantity(p);
+            return quantity > 0 && quantity < 10;
+        }).length
     };
 
     if (loading && products.length === 0) {
@@ -150,8 +155,8 @@ const ProductManagement = () => {
                             product={product}
                             onEdit={() => handleEdit(product)}
                             onDelete={() => deleteProduct(product.id)}
-                            onToggleStatus={() => toggleProductStatus(product.id, product.status)}
-                            onUpdateStock={(newQuantity) => updateStock(product.id, newQuantity)}
+                            onToggleStatus={() => toggleProductStatus(product.id, product.isActive !== false)}
+                            onUpdateStock={(quantityDelta) => updateStock(product.variants?.[0]?.id, quantityDelta)}
                         />
                     ))}
                 </div>

@@ -70,7 +70,7 @@ export const ProductManagementProvider = ({ children }) => {
                 ...productData,
                 supplierId: supplierId  // Explicitly set the supplier ID
             });
-            setProducts(prev => [newProduct, ...prev]);
+            await loadProducts();
             return { success: true, product: newProduct };
         } catch (err) {
             setError('Failed to create product');
@@ -123,10 +123,10 @@ export const ProductManagementProvider = ({ children }) => {
         }
     };
 
-    const updateStock = async (productId, newQuantity) => {
+    const updateStock = async (productVariantId, quantityDelta) => {
         try {
-            const updatedProduct = await productManagementService.updateStock(productId, newQuantity);
-            setProducts(prev => prev.map(p => p.id === productId ? updatedProduct : p));
+            await productManagementService.updateStock(productVariantId, quantityDelta);
+            await loadProducts();
             return { success: true };
         } catch (err) {
             setError('Failed to update stock');

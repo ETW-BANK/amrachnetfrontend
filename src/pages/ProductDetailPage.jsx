@@ -4,6 +4,7 @@ import productService from '../services/productService';
 import cartService from '../services/cartService';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
+import { getProductAvailableQuantity, isProductInStock } from '../utils/productStock';
 
 const ProductDetailPage = () => {
     const { id } = useParams();
@@ -45,7 +46,8 @@ const ProductDetailPage = () => {
 
     const handleQuantityChange = (delta) => {
         const newQuantity = quantity + delta;
-        if (newQuantity >= 1 && newQuantity <= (product.stockQuantity || 999)) {
+        const maxQuantity = getProductAvailableQuantity(product, selectedVariant);
+        if (newQuantity >= 1 && newQuantity <= (maxQuantity || 999)) {
             setQuantity(newQuantity);
         }
     };
@@ -95,6 +97,8 @@ const ProductDetailPage = () => {
 
     const price = getPrice();
     const originalPrice = getOriginalPrice();
+    const availableQuantity = getProductAvailableQuantity(product, selectedVariant);
+    const inStock = isProductInStock(product, selectedVariant);
 
     return (
         <div className="product-detail-page">
@@ -110,7 +114,10 @@ const ProductDetailPage = () => {
                 <div className="product-gallery">
                     <div className="main-image">
                         {product.images && product.images[activeImage] ? (
-                            <img src={product.images[activeImage].url} alt={product.name} />
+                            <img
+                                src={product.images[activeImage].imageUrl || product.images[activeImage].url}
+                                alt={product.name}
+                            />
                         ) : (
                             <div className="image-placeholder">
                                 <i className="fas fa-box-open"></i>
@@ -170,9 +177,9 @@ const ProductDetailPage = () => {
 
                     {/* Stock Status */}
                     <div className="stock-status">
-                        {product.stockQuantity > 0 ? (
+                        {inStock ? (
                             <span className="in-stock">
-                                <i className="fas fa-check-circle"></i> In Stock ({product.stockQuantity} units available)
+                                <i className="fas fa-check-circle"></i> In Stock ({availableQuantity} units available)
                             </span>
                         ) : (
                             <span className="out-of-stock">
@@ -201,7 +208,7 @@ const ProductDetailPage = () => {
                     )}
 
                     {/* Quantity Selector */}
-                    {product.stockQuantity > 0 && (
+                    {inStock && availableQuantity > 0 && (
                         <div className="quantity-section">
                             <label>Quantity:</label>
                             <div className="quantity-selector">
@@ -215,19 +222,19 @@ const ProductDetailPage = () => {
                                 <span className="quantity">{quantity}</span>
                                 <button 
                                     onClick={() => handleQuantityChange(1)}
-                                    disabled={quantity >= product.stockQuantity}
+                                    disabled={quantity >= availableQuantity}
                                     className="qty-btn"
                                 >
                                     +
                                 </button>
                             </div>
-                            <span className="max-quantity">Max: {product.stockQuantity}</span>
+                            <span className="max-quantity">Max: {availableQuantity}</span>
                         </div>
                     )}
 
                     {/* Action Buttons */}
                     <div className="action-buttons">
-                        {product.stockQuantity > 0 && (
+                        {inStock && availableQuantity > 0 && (
                             <>
                                 <button 
                                     className="btn-add-to-cart-large"

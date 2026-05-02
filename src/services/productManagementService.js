@@ -1,7 +1,7 @@
 import api from './api';
 
 // Set to false to use real API
-const USE_MOCK_PRODUCT_MANAGEMENT = true;
+const USE_MOCK_PRODUCT_MANAGEMENT = false;
 
 // Mock data - store products per supplier
 let mockProducts = [
@@ -37,6 +37,17 @@ let mockProducts = [
     }
 ];
 
+const buildInventoryReceiveEndpoint = (productVariantId, quantity, reference = 'Stock update') => {
+    const query = new URLSearchParams({
+        productVariantId: String(productVariantId),
+        locationId: '1',
+        quantity: String(quantity),
+        reference
+    });
+
+    return `/Inventory/receive?${query.toString()}`;
+};
+
 export const productManagementService = {
     // Get all products for current supplier
     getSupplierProducts: async (supplierId) => {
@@ -49,7 +60,22 @@ export const productManagementService = {
         
         try {
             const response = await api.get(`/Product/supplier/${supplierId}`);
-            return Array.isArray(response) ? response : [];
+
+            const products = Array.isArray(response)
+                ? response
+                : (Array.isArray(response?.items) ? response.items : []);
+
+            // Safety net: if API returns extra products, filter client-side.
+            const normalizedSupplierId = Number(supplierId);
+            const hasSupplierField = products.some(
+                p => p && (p.supplierId !== undefined || p.supplier?.id !== undefined)
+            );
+            if (!hasSupplierField) return products;
+
+            return products.filter(p => {
+                const productSupplierId = p?.supplierId ?? p?.supplier?.id;
+                return Number(productSupplierId) === normalizedSupplierId;
+            });
         } catch (error) {
             console.error('Error fetching supplier products:', error);
             return [];
@@ -88,6 +114,16 @@ export const productManagementService = {
         }
         
         try {
+            const variantsFromForm = Array.isArray(productData.variants) ? productData.variants : [];
+            const variants = variantsFromForm.length > 0
+                ? variantsFromForm
+                : [{
+                    variantName: 'Standard',
+                    price: productData.price,
+                    sku: productData.sku,
+                    initialQuantity: productData.stockQuantity || 0
+                }];
+
             // Match API CreateProductDto
             const requestBody = {
                 name: productData.name,
@@ -98,15 +134,34 @@ export const productManagementService = {
                 leadTimeDays: productData.leadTimeDays || 7,
                 categoryId: productData.categoryId,
                 supplierId: productData.supplierId,  // Required field
-                variants: [{
-                    variantName: "Standard",
-                    price: productData.price,
-                    currency: "USD",
-                    initialQuantity: productData.stockQuantity || 0
-                }]
+                variants: variants.map(v => ({
+                    variantName: v.variantName,
+                    price: v.price,
+                    sku: v.sku,
+                    currency: v.currency || 'USD',
+                    initialQuantity: v.initialQuantity ?? v.stockQuantity ?? 0
+                }))
             };
             
-            return await api.post('/Product', requestBody);
+            const createdProduct = await api.post('/Product', requestBody);
+            const createdVariants = Array.isArray(createdProduct?.variants) ? createdProduct.variants : [];
+
+            await Promise.all(createdVariants.map((variant, index) => {
+                const requestedQuantity = Number(variants[index]?.initialQuantity ?? variants[index]?.stockQuantity ?? 0);
+
+                if (!variant?.id || requestedQuantity <= 0) {
+                    return Promise.resolve();
+                }
+
+                return api.post(
+                    buildInventoryReceiveEndpoint(variant.id, requestedQuantity, 'Initial stock'),
+                    undefined
+                ).catch(error => {
+                    console.error(`Error seeding inventory for variant ${variant.id}:`, error);
+                });
+            }));
+
+            return await api.get(`/Product/${createdProduct.id}`);
         } catch (error) {
             console.error('Error creating product:', error);
             throw error;
@@ -189,13 +244,13 @@ export const productManagementService = {
     },
 
     // Update stock quantity
-    updateStock: async (productId, newQuantity) => {
+    updateStock: async (productVariantId, quantityDelta) => {
         if (USE_MOCK_PRODUCT_MANAGEMENT) {
-            const index = mockProducts.findIndex(p => p.id === productId);
+            const index = mockProducts.findIndex(p => p.variants?.[0]?.id === productVariantId || p.id === productVariantId);
             if (index !== -1) {
-                mockProducts[index].stockQuantity = newQuantity;
+                mockProducts[index].stockQuantity = (mockProducts[index].stockQuantity || 0) + quantityDelta;
                 if (mockProducts[index].variants && mockProducts[index].variants.length > 0) {
-                    mockProducts[index].variants[0].stockQuantity = newQuantity;
+                    mockProducts[index].variants[0].stockQuantity = (mockProducts[index].variants[0].stockQuantity || 0) + quantityDelta;
                 }
                 mockProducts[index].updatedAt = new Date().toISOString();
                 return mockProducts[index];
@@ -204,12 +259,14 @@ export const productManagementService = {
         }
         
         try {
-            return await api.post(`/Inventory/receive`, {
-                productVariantId: productId,
-                locationId: 1,
-                quantity: newQuantity,
-                reference: "Stock update"
-            });
+            if (quantityDelta <= 0) {
+                return null;
+            }
+
+            return await api.post(
+                buildInventoryReceiveEndpoint(productVariantId, quantityDelta, 'Stock update'),
+                undefined
+            );
         } catch (error) {
             console.error('Error updating stock:', error);
             throw error;

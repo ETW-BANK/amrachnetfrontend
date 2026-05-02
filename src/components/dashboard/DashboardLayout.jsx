@@ -25,7 +25,27 @@ const DashboardLayout = () => {
         { to: "/dashboard/profile", label: "Profile Settings", icon: "fas fa-user-cog" }
     ];
 
-    const navItems = userRole === 'Supplier' ? supplierNavItems : buyerNavItems;
+    const adminNavItems = [
+        { to: "/dashboard", label: "Overview", icon: "fas fa-chart-line" },
+        { to: "/dashboard/admin/users", label: "Users", icon: "fas fa-users-cog" },
+        { to: "/dashboard/admin/categories", label: "Categories", icon: "fas fa-tags" },
+        { to: "/dashboard/admin/subcategories", label: "Subcategories", icon: "fas fa-sitemap" },
+        { to: "/dashboard/admin/products", label: "Products", icon: "fas fa-boxes" },
+        { to: "/dashboard/admin/orders", label: "Orders", icon: "fas fa-receipt" },
+        { to: "/dashboard/admin/rfqs", label: "RFQs", icon: "fas fa-file-signature" },
+        { to: "/dashboard/admin/quotes", label: "Quotes", icon: "fas fa-file-invoice-dollar" },
+        { to: "/dashboard/admin/sellers", label: "Sellers", icon: "fas fa-store" },
+        { to: "/dashboard/admin/moderation", label: "Moderation", icon: "fas fa-shield-alt" },
+        { to: "/dashboard/admin/settings", label: "Settings", icon: "fas fa-sliders-h" },
+        { to: "/dashboard/admin/reports", label: "Reports", icon: "fas fa-chart-pie" },
+        { to: "/dashboard/profile", label: "Profile Settings", icon: "fas fa-user-cog" }
+    ];
+
+    const navItems = userRole === 'Admin'
+        ? adminNavItems
+        : userRole === 'Supplier'
+            ? supplierNavItems
+            : buyerNavItems;
 
     return (
         <div className="dashboard-layout">

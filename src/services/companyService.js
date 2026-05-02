@@ -89,6 +89,19 @@ export const companyService = {
             console.error('Error searching suppliers:', error);
             return [];
         }
+    },
+
+    verifyCompany: async (companyId, adminUserId, notes = '') => {
+        try {
+            const query = new URLSearchParams({
+                adminUserId: String(adminUserId),
+                ...(notes ? { notes } : {})
+            });
+            return await api.post(`/Companies/${companyId}/verify?${query.toString()}`, null);
+        } catch (error) {
+            console.error('Error verifying company:', error);
+            throw error;
+        }
     }
 };
 

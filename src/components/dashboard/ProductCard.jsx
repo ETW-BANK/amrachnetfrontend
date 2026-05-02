@@ -1,18 +1,30 @@
 import React, { useState } from 'react';
+import { getProductAvailableQuantity } from '../../utils/productStock';
 
 const ProductCard = ({ product, onEdit, onDelete, onToggleStatus, onUpdateStock }) => {
     const [showStockInput, setShowStockInput] = useState(false);
-    const [newStock, setNewStock] = useState(product.stockQuantity || product.variants?.[0]?.stockQuantity || 0);
+    const currentStock = getProductAvailableQuantity(product);
+    const [newStock, setNewStock] = useState(currentStock);
     const [updatingStock, setUpdatingStock] = useState(false);
 
     const handleStockUpdate = async () => {
-        if (newStock === (product.stockQuantity || product.variants?.[0]?.stockQuantity)) {
+        if (newStock === currentStock) {
+            setShowStockInput(false);
+            return;
+        }
+
+        const quantityDelta = newStock - currentStock;
+        if (quantityDelta < 0) {
+            alert('Only stock increases are supported from this dashboard right now.');
+            return;
+        }
+        if (quantityDelta === 0) {
             setShowStockInput(false);
             return;
         }
         
         setUpdatingStock(true);
-        await onUpdateStock(newStock);
+        await onUpdateStock(quantityDelta);
         setUpdatingStock(false);
         setShowStockInput(false);
     };
@@ -30,7 +42,6 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleStatus, onUpdateStock 
         return { text: 'In Stock', class: 'in-stock' };
     };
 
-    const currentStock = product.stockQuantity || product.variants?.[0]?.stockQuantity || 0;
     const stockStatus = getStockStatus(currentStock);
     const isActive = product.isActive !== false;
 
@@ -97,6 +108,7 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleStatus, onUpdateStock 
                         <button 
                             className="update-stock-btn"
                             onClick={() => setShowStockInput(true)}
+                            disabled={!product.variants?.[0]?.id}
                         >
                             <i className="fas fa-edit"></i> Update Stock
                         </button>

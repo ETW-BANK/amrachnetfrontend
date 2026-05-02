@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -26,6 +27,7 @@ import ProfileSettings from './components/dashboard/ProfileSettings';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ProductManagementProvider } from './context/ProductManagementContext';
 import ProductManagement from './components/dashboard/ProductManagement';
+import AdminManagementPage from './components/dashboard/AdminManagementPage';
 import './index.css';
 
 function App() {
@@ -78,6 +80,8 @@ function App() {
               <Route path="wishlist" element={<div>Wishlist (Coming Soon)</div>} />
               <Route path="products" element={<ProductManagement />} />
               <Route path="company" element={<div>Company Profile (Coming Soon)</div>} />
+              <Route path="admin" element={<ProtectedRoute requiredRole="Admin"><Navigate to="/dashboard/admin/users" replace /></ProtectedRoute>} />
+              <Route path="admin/:section" element={<ProtectedRoute requiredRole="Admin"><AdminManagementPage /></ProtectedRoute>} />
             </Route>
           </Routes>
         </main>
